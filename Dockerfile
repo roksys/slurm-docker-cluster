@@ -9,6 +9,21 @@ LABEL org.label-schema.vcs-url="https://github.com/giovtorres/slurm-docker-clust
 ARG SLURM_TAG=slurm-18-08-6-2
 ARG GOSU_VERSION=1.11
 
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == \
+systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+rm -f /lib/systemd/system/multi-user.target.wants/*;\
+rm -f /etc/systemd/system/*.wants/*;\
+rm -f /lib/systemd/system/local-fs.target.wants/*; \
+rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+rm -f /lib/systemd/system/basic.target.wants/*;\
+rm -f /lib/systemd/system/anaconda.target.wants/*;
+VOLUME [ "/sys/fs/cgroup" ]
+RUN yum -y install openssh-server openssh-clients
+RUN echo root:pass | chpasswd
+RUN ssh-keygen -f /etc/ssh/ssh_host_rsa_key -N '' -t rsa
+RUN ssh-keygen -f /etc/ssh/ssh_host_ed25519_key -N '' -t ed25519
+
 RUN set -ex \
     && yum makecache fast \
     && yum -y update \
